@@ -21,8 +21,6 @@ class ParcelTest extends \PHPUnit_Framework_TestCase
     {
         $this->resource->addParcel($this->generateParcel());
         $sended = $this->resource->send();
-        var_dump($sended);
-
 
         $this->assertArrayHasKey('awb', array_shift($sended));
     }
