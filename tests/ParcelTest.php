@@ -41,8 +41,11 @@ class ParcelTest extends \PHPUnit_Framework_TestCase
         $parcel = $this->generateParcel();
         unset($parcel['AWB_NUMBER']);
 
-        $this->expectException('\EcomExpressAPI\Exception\RequestException');
-        $this->resource->addParcel($parcel)->send();
+        try {
+            $this->resource->addParcel($parcel)->send();
+        } catch (\EcomExpressAPI\Exception\RequestException $e) {
+            $this->assertType('\EcomExpressAPI\Exception\RequestException', $e);
+        }
     }
 
     private function generateParcel()
