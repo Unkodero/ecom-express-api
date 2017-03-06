@@ -39,7 +39,7 @@ $pin = $api->getPinList();
 ...
 
 $parcel = [
-    "AWB_NUMBER" => "103086828",
+    "AWB_NUMBER" => "",
     "ORDER_NUMBER" => rand(1, 999),
     "PRODUCT" => "COD",
     "CONSIGNEE" => "TEST",
