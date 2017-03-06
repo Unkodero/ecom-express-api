@@ -20,7 +20,6 @@ class TrackingTest extends \PHPUnit_Framework_TestCase
     public function testSingleTracking()
     {
         $this->assertArrayHasKey(102019265, $this->resource->track(102019265));
-        var_dump($this->resource->getPinList());
     }
 
     public function testMultiTracking()

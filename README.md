@@ -1,5 +1,7 @@
 # EcomExpress API
+https://ecomexpress.in/ Wrapper
 
+##Usage
 ```php
 <?php
 
@@ -37,41 +39,41 @@ $pin = $api->getPinList();
 ...
 
 $parcel = [
-                      "AWB_NUMBER" => "103086828",
-                      "ORDER_NUMBER" => rand(1, 999),
-                      "PRODUCT" => "COD",
-                      "CONSIGNEE" => "TEST",
-                      "CONSIGNEE_ADDRESS1" => "ADDR1",
-                      "CONSIGNEE_ADDRESS2" => "ADDR2",
-                      "CONSIGNEE_ADDRESS3" => "ADDR3",
-                      "DESTINATION_CITY" => "MUMBAI",
-                      "PINCODE"=> "400067",
-                      "STATE" => "MH",
-                      "MOBILE" => "156729",
-                      "TELEPHONE" => "1234",
-                      "ITEM_DESCRIPTION" => "MOBILE",
-                      "PIECES" => "1",
-                      "COLLECTABLE_VALUE" => "3000",
-                      "DECLARED_VALUE" => "3000",
-                      "ACTUAL_WEIGHT"=> "5",
-                      "VOLUMETRIC_WEIGHT"=> "0",
-                      "LENGTH"=> " 10",
-                      "BREADTH"=> "10",
-                      "HEIGHT"=> "10",
-                      "PICKUP_NAME"=> "abcde",
-                      "PICKUP_ADDRESS_LINE1"=> "Samalkha",
-                      "PICKUP_ADDRESS_LINE2"=> "kapashera",
-                      "PICKUP_PINCODE"    =>"110013",
-                      "PICKUP_PHONE"=> "98204",
-                      "PICKUP_MOBILE"=> "59536",
-                      "RETURN_PINCODE"=> "110013",
-                      "RETURN_NAME"=> "abcde",
-                      "RETURN_ADDRESS_LINE1"=> "Samalkha",
-                      "RETURN_ADDRESS_LINE2"=> "kapashera",
-                      "RETURN_PHONE"=> "98204",
-                      "RETURN_MOBILE" => "59536",
-                      "DG_SHIPMENT" => "true"
-                  ];
+    "AWB_NUMBER" => "103086828",
+    "ORDER_NUMBER" => rand(1, 999),
+    "PRODUCT" => "COD",
+    "CONSIGNEE" => "TEST",
+    "CONSIGNEE_ADDRESS1" => "ADDR1",
+    "CONSIGNEE_ADDRESS2" => "ADDR2",
+    "CONSIGNEE_ADDRESS3" => "ADDR3",
+    "DESTINATION_CITY" => "MUMBAI",
+    "PINCODE"=> "400067",
+    "STATE" => "MH",
+    "MOBILE" => "156729",
+    "TELEPHONE" => "1234",
+    "ITEM_DESCRIPTION" => "MOBILE",
+    "PIECES" => "1",
+    "COLLECTABLE_VALUE" => "3000",
+    "DECLARED_VALUE" => "3000",
+    "ACTUAL_WEIGHT"=> "5",
+    "VOLUMETRIC_WEIGHT"=> "0",
+    "LENGTH"=> " 10",
+    "BREADTH"=> "10",
+    "HEIGHT"=> "10",
+    "PICKUP_NAME"=> "abcde",
+    "PICKUP_ADDRESS_LINE1"=> "Samalkha",
+    "PICKUP_ADDRESS_LINE2"=> "kapashera",
+    "PICKUP_PINCODE"    =>"110013",
+    "PICKUP_PHONE"=> "98204",
+    "PICKUP_MOBILE"=> "59536",
+    "RETURN_PINCODE"=> "110013",
+    "RETURN_NAME"=> "abcde",
+    "RETURN_ADDRESS_LINE1"=> "Samalkha",
+    "RETURN_ADDRESS_LINE2"=> "kapashera",
+    "RETURN_PHONE"=> "98204",
+    "RETURN_MOBILE" => "59536",
+    "DG_SHIPMENT" => "true"
+ ];
                   
 $send = $api->addParcel($parcel)->send();             
 ```
@@ -116,7 +118,22 @@ $api->send;
 
 **Parcel sending**
 ```php
-{"shipments": [ {"reason": "AIRWAYBILL_NUMBER_ALREADY_EXISTS", "order_number": "7677", "awb": "103086824", "success": false}, {"reason": “", "order_number": "7677", "awb": "103086825", "success": true}]}
+array (
+    0 => 
+    array (
+      'reason' => 'AIRWAYBILL_NUMBER_ALREADY_EXISTS',
+      'order_number' => '7677',
+      'awb' => '103086824',
+      'success' => false,
+    ),
+    1 => 
+    array (
+      'reason' => '',
+      'order_number' => '7677',
+      'awb' => '103086825',
+      'success' => true,
+    ),
+  ),=
 ```
 
 **Tracking**
