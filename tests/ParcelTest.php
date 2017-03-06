@@ -22,7 +22,7 @@ class ParcelTest extends \PHPUnit_Framework_TestCase
         $this->resource->addParcel($this->generateParcel());
         $sended = $this->resource->send();
 
-        $this->assertArrayHasKey('AWB_NUMBER', array_shift($sended));
+        $this->assertArrayHasKey('awb', array_shift($sended));
     }
 
     public function testMultiParcel()
@@ -34,10 +34,6 @@ class ParcelTest extends \PHPUnit_Framework_TestCase
             ->send();
 
         $this->assertTrue(count($sended) === 3);
-
-        foreach ($sended as $parcel) {
-            $this->assertArrayHasKey('AWB_NUMBER', $parcel);
-        }
     }
 
     public function testErrorParcel()
@@ -45,40 +41,47 @@ class ParcelTest extends \PHPUnit_Framework_TestCase
         $parcel = $this->generateParcel();
         unset($parcel['AWB_NUMBER']);
 
-        $this->assertArrayHasKey('error_list', array_shift($this->resource->addParcel($parcel)->send()));
+        $this->expectException('\EcomExpressAPI\Exception\RequestException');
+        $this->resource->addParcel($parcel)->send();
     }
 
     private function generateParcel()
     {
         return [
-            'AWB_NUMBER' => '',
-            'ORDER_NUMBER' => rand(111111, 9999999),
-            'PRODUCT' => 'rev',
-            'REVPICKUP_NAME' => 'Pia Bhatia',
-            'REVPICKUP_ADDRESS1' => 'Laxmi Villa Prem Nagar Tekdi Near Swami Shanti Prakash Yoga Kendra Ashram',
-            'REVPICKUP_ADDRESS2' => '',
-            'REVPICKUP_ADDRESS3' => ' ',
-            'REVPICKUP_CITY' => 'Thane',
-            'REVPICKUP_PINCODE' => '110019',
-            'REVPICKUP_STATE' => 'MAH',
-            'REVPICKUP_MOBILE' => '9923919137',
-            'REVPICKUP_TELEPHONE' => '9923919137',
-            'ITEM_DESCRIPTION' => 'MI4I',
-            'PIECES' => 1,
-            'COLLECTABLE_VALUE' => '1.140',
-            'DECLARED_VALUE' => '2099',
-            'ACTUAL_WEIGHT' => '0.87',
-            'VOLUMETRIC_WEIGHT' => '0.87',
-            'LENGTH' => '320',
-            'BREADTH' => '200',
-            'HEIGHT' => '120',
-            'VENDOR_ID' =>' ',
-            'DROP_NAME' => 'Khasra No.14/14,17,18,23, 24/',
-            'DROP_ADDRESS_LINE1' => 'Khasra No.14/14,17,18,23, 24/1',
-            'DROP_ADDRESS_LINE2' => 'Village Khawaspur, Tehsil Farrukhnagar',
-            'DROP_PINCODE' => '110019',
-            'DROP_PHONE' => '9999999999',
-            'DROP_MOBILE' => '8800673006',
+            "AWB_NUMBER" => "103086828",
+            "ORDER_NUMBER" => rand(1, 999),
+            "PRODUCT" => "COD",
+            "CONSIGNEE" => "TEST",
+            "CONSIGNEE_ADDRESS1" => "ADDR1",
+            "CONSIGNEE_ADDRESS2" => "ADDR2",
+            "CONSIGNEE_ADDRESS3" => "ADDR3",
+            "DESTINATION_CITY" => "MUMBAI",
+            "PINCODE"=> "400067",
+            "STATE" => "MH",
+            "MOBILE" => "156729",
+            "TELEPHONE" => "1234",
+            "ITEM_DESCRIPTION" => "MOBILE",
+            "PIECES" => "1",
+            "COLLECTABLE_VALUE" => "3000",
+            "DECLARED_VALUE" => "3000",
+            "ACTUAL_WEIGHT"=> "5",
+            "VOLUMETRIC_WEIGHT"=> "0",
+            "LENGTH"=> " 10",
+            "BREADTH"=> "10",
+            "HEIGHT"=> "10",
+            "PICKUP_NAME"=> "abcde",
+            "PICKUP_ADDRESS_LINE1"=> "Samalkha",
+            "PICKUP_ADDRESS_LINE2"=> "kapashera",
+            "PICKUP_PINCODE"    =>"110013",
+            "PICKUP_PHONE"=> "98204",
+            "PICKUP_MOBILE"=> "59536",
+            "RETURN_PINCODE"=> "110013",
+            "RETURN_NAME"=> "abcde",
+            "RETURN_ADDRESS_LINE1"=> "Samalkha",
+            "RETURN_ADDRESS_LINE2"=> "kapashera",
+            "RETURN_PHONE"=> "98204",
+            "RETURN_MOBILE" => "59536",
+            "DG_SHIPMENT" => "true"
         ];
     }
 

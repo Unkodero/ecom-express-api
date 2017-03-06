@@ -4,6 +4,10 @@ namespace EcomExpressAPI;
 
 use EcomExpressAPI\Exception\RequestException;
 
+/**
+ * Class API
+ * @package EcomExpressAPI
+ */
 class API
 {
     const PRODUCTION_API_URL = 'http://api.ecomexpress.in';
@@ -55,6 +59,33 @@ class API
     }
 
     /**
+     * @param int $count
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getAwbNumbers($count = 1)
+    {
+        $codes = json_decode($this->request('/apiv2/fetch_awb/', ['count' => $count, 'type' => 'COD']), true);
+
+        if ($codes['success'] == 'no') {
+            throw new \Exception($codes['error'][0]);
+        }
+
+        return $codes['awb'];
+    }
+
+    /**
+     * Get all pincodes
+     * @return mixed
+     */
+    public function getPinList()
+    {
+        return json_decode(
+                $this->request('/apiv2/pincodes/')
+            , true);
+    }
+
+    /**
      * Tracking parcel
      * @param $number mixed Tracking number (string or array for multiply)
      * @return array
@@ -65,7 +96,7 @@ class API
             $number = implode($number, ',');
         }
 
-        $response = $this->request('/track_me/api/mawbd/', ['awb' => $number], 'POST');
+        $response = $this->request('/track_me/api/mawbd/', ['awb' => $number]);
 
         $xmlObject = new \SimpleXMLElement($response);
         $array = [];
@@ -112,7 +143,8 @@ class API
 
     /**
      * Send parcel
-     * @return array
+     * @return array|string
+     * @throws RequestException
      */
     public function send()
     {
@@ -120,58 +152,22 @@ class API
             return [];
         }
 
-        $sended = [];
+        $codes = $this->getAwbNumbers(count($this->parcels));
 
         foreach ($this->parcels as $parcel) {
-            $xmlSource = [];
-            $xmlSource[] = ['SHIPMENT' => $parcel];
-            $xmlData = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="no"?><ECOMEXPRESS-OBJECTS></ECOMEXPRESS-OBJECTS>');
-            $this->arrayToXML($xmlSource, $xmlData);
-
-            $sended[$parcel['ORDER_NUMBER']];
-
-            $response = $this->request('/api/api_create_rev_awb_xml_v3/', ['xml_input' => (string)$xmlData->asXml()], 'POST');
-            
-            try {
-                $xmlObject = new \SimpleXMLElement($response);
-            } catch (\Exception $e) {
-                $sended[$parcel['ORDER_NUMBER']] = ['error_list' => ['reason_comment' => 'Error in parcel information']];
-            }
-
-            foreach ($xmlObject as $object) {
-                foreach ($object->AIRWAYBILL as $field) {
-                    if ((string)$field->success !== 'True') {
-                        $sended[$parcel['ORDER_NUMBER']] = ['error_list' => ['reason_comment' => $field->error_list->reason_comment]];
-                    } else {
-                        $sended[$parcel['ORDER_NUMBER']]['AWB_NUMBER'] = (string)$field->airwaybill_number;
-                    }
-                }
-            }
+            $parcel['AWB_NUMBER'] = end($codes);
+            unset($codes[count($codes)-1]);
         }
 
-        $this->parcels = [];
-        return $sended;
-    }
+        $response = $this->request('/apiv2/manifest_awb/', ['json_input' => json_encode($this->parcels)]);
 
-    //system functions
-    /**
-     * Convert array to XML
-     * @param array $xmlSource
-     * @param \SimpleXMLElement $xmlData
-     */
-    private function arrayToXML(array $xmlSource, \SimpleXMLElement &$xmlData)
-    {
-        foreach ($xmlSource as $key => $value) {
-            if (is_array($value)) {
-                if (!is_numeric($key)) {
-                    $subNode = $xmlData->addChild($key);
-                    $this->arrayToXML($value, $subNode);
-                } else {
-                    $this->arrayToXML($value, $xmlData);
-                }
-            } else {
-                $xmlData->addChild($key, $value);
-            }
+        $response = json_decode($response, true)['shipments'];
+
+        if ($response == null) {
+            throw new RequestException('Error in request');
+        } else {
+            $this->parcels = [];
+            return $response;
         }
     }
 
@@ -180,11 +176,10 @@ class API
      *
      * @param $method
      * @param array $parameters GET or POST parameters
-     * @param string $requestMethod HTTP Request Method
      * @return string Document Body
      * @throws RequestException
      */
-    private function request($method, $parameters = [], $requestMethod = 'GET')
+    private function request($method, $parameters = [])
     {
         $parameters['username'] = $this->username;
         $parameters['password'] = $this->password;
@@ -195,33 +190,14 @@ class API
             CURLOPT_RETURNTRANSFER => 1
         ];
 
-        if ($requestMethod == 'POST') {
-            $curlOptions[CURLOPT_URL] = $this->buildURL($this->API_URL, $method, []);
-            $curlOptions[CURLOPT_POST] = true;
-            $curlOptions[CURLOPT_POSTFIELDS] = http_build_query($parameters);
+        $curlOptions[CURLOPT_URL] = $this->API_URL . $method;
+        $curlOptions[CURLOPT_POST] = true;
+        $curlOptions[CURLOPT_POSTFIELDS] = http_build_query($parameters);
 
-            curl_setopt_array($ch, $curlOptions);
+        curl_setopt_array($ch, $curlOptions);
 
-            $response = curl_exec($ch);
-        } elseif ($requestMethod == 'GET') {
-            curl_setopt_array($ch, $curlOptions);
-
-            $response = curl_exec($ch);
-        } else {
-            throw new RequestException("Unknown HTTP request method {$requestMethod}");
-        }
+        $response = curl_exec($ch);
 
         return (string)$response;
-    }
-
-    /**
-     * @param $uri
-     * @param $location
-     * @param array $parameters
-     * @return string
-     */
-    private function buildURL($uri, $location, $parameters = [])
-    {
-        return $uri . $location . '?' . http_build_query($parameters);
     }
 }
