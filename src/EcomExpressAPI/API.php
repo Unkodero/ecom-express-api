@@ -2,7 +2,6 @@
 
 namespace EcomExpressAPI;
 
-use \GuzzleHttp\Client as HttpClient;
 use EcomExpressAPI\Exception\RequestException;
 
 class API
@@ -12,11 +11,6 @@ class API
     const DEVELOPMENT_API_URL = 'http://ecomm.prtouch.com';
     const DEVELOPMENT_API_USERNAME = 'ecomexpress';
     const DEVELOPMENT_API_PASSWORD = 'Ke$3c@4oT5m6h#$';
-
-    /**
-     * @var HttpClient
-     */
-    private $httpClient;
 
     /**
      * @var string Current API URL
@@ -48,8 +42,6 @@ class API
         $this->API_URL = self::PRODUCTION_API_URL;
         $this->username = $username;
         $this->password = $password;
-
-        $this->httpClient = new HttpClient();
     }
 
     /**
@@ -69,7 +61,7 @@ class API
      */
     public function track($number)
     {
-        if(is_array($number)) {
+        if (is_array($number)) {
             $number = implode($number, ',');
         }
 
@@ -138,14 +130,13 @@ class API
 
             $sended[$parcel['ORDER_NUMBER']];
 
+            $response = $this->request('/api/api_create_rev_awb_xml_v3/', ['xml_input' => (string)$xmlData->asXml()], 'POST');
+            
             try {
-                $response = $this->request('/api/api_create_rev_awb_xml_v3/', ['xml_input' => (string)$xmlData->asXml()], 'POST');
-            } catch (RequestException $e) {
+                $xmlObject = new \SimpleXMLElement($response);
+            } catch (\Exception $e) {
                 $sended[$parcel['ORDER_NUMBER']] = ['error_list' => ['reason_comment' => 'Error in parcel information']];
-                continue;
             }
-
-            $xmlObject = new \SimpleXMLElement($response);
 
             foreach ($xmlObject as $object) {
                 foreach ($object->AIRWAYBILL as $field) {
@@ -198,28 +189,29 @@ class API
         $parameters['username'] = $this->username;
         $parameters['password'] = $this->password;
 
-        try {
-            if ($requestMethod == 'POST') {
-                $response = $this->httpClient->request($requestMethod, $this->buildURL($this->API_URL, $method, []), ['form_params' => $parameters]);
-            } elseif ($requestMethod == 'GET') {
-                $response = $this->httpClient->request($requestMethod, $this->buildURL($this->API_URL, $method, $parameters));
-            } else {
-                throw new RequestException("Unknown HTTP request method {$requestMethod}");
-            }
-            //Doh!
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            throw new RequestException($e->getMessage());
-        }  catch (\GuzzleHttp\Exception\ServerException $e) {
-            throw new RequestException($e->getMessage());
-        }  catch (\GuzzleHttp\Exception\BadResponseException $e) {
-            throw new RequestException($e->getMessage());
+        $ch = curl_init();
+
+        $curlOptions = [
+            CURLOPT_RETURNTRANSFER => 1
+        ];
+
+        if ($requestMethod == 'POST') {
+            $curlOptions[CURLOPT_URL] = $this->buildURL($this->API_URL, $method, []);
+            $curlOptions[CURLOPT_POST] = true;
+            $curlOptions[CURLOPT_POSTFIELDS] = http_build_query($parameters);
+
+            curl_setopt_array($ch, $curlOptions);
+
+            $response = curl_exec($ch);
+        } elseif ($requestMethod == 'GET') {
+            curl_setopt_array($ch, $curlOptions);
+
+            $response = curl_exec($ch);
+        } else {
+            throw new RequestException("Unknown HTTP request method {$requestMethod}");
         }
 
-        if ((int)$response->getStatusCode() !== 200) {
-            throw new RequestException((string)$response->getBody());
-        }
-
-        return (string)$response->getBody();
+        return (string)$response;
     }
 
     /**
@@ -230,6 +222,6 @@ class API
      */
     private function buildURL($uri, $location, $parameters = [])
     {
-        return $uri . $location .  '?' . http_build_query($parameters);
+        return $uri . $location . '?' . http_build_query($parameters);
     }
 }
