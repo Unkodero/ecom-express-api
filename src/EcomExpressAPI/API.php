@@ -172,7 +172,7 @@ class API
     }
 
     /**
-     * Guzzle wrapper to make request
+     * Wrapper to make request
      *
      * @param $method
      * @param array $parameters GET or POST parameters
