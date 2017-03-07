@@ -155,7 +155,7 @@ class API
         $codes = $this->getAwbNumbers(count($this->parcels));
 
         foreach ($this->parcels as &$parcel) {
-            $parcel['AWB_NUMBER'] = end($codes);
+            $parcel['AWB_NUMBER'] = (string)end($codes);
             unset($codes[count($codes)-1]);
         }
 
