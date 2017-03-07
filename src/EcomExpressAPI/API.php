@@ -2,6 +2,7 @@
 
 namespace EcomExpressAPI;
 
+use EcomExpressAPI\Exception\ApiException;
 use EcomExpressAPI\Exception\RequestException;
 
 /**
@@ -59,30 +60,45 @@ class API
     }
 
     /**
-     * @param int $count
-     * @return mixed
-     * @throws \Exception
-     */
-    public function getAwbNumbers($count = 1)
-    {
-        $codes = json_decode($this->request('/apiv2/fetch_awb/', ['count' => $count, 'type' => 'COD']), true);
-
-        if ($codes['success'] == 'no') {
-            throw new \Exception($codes['error'][0]);
-        }
-
-        return $codes['awb'];
-    }
-
-    /**
      * Get all pincodes
      * @return mixed
      */
     public function getPinList()
     {
-        return json_decode(
-                $this->request('/apiv2/pincodes/')
-            , true);
+        return json_decode($this->request('/apiv2/pincodes/'), true);
+    }
+
+    /**
+     * Wrapper to make request
+     *
+     * @param $method
+     * @param array $parameters POST parameters
+     * @return string Document Body
+     * @throws ApiException
+     */
+    private function request($method, $parameters = [])
+    {
+        $parameters['username'] = $this->username;
+        $parameters['password'] = $this->password;
+
+        $ch = curl_init();
+
+        $curlOptions = [
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_URL => $this->API_URL . $method,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => http_build_query($parameters)
+        ];
+
+        curl_setopt_array($ch, $curlOptions);
+
+        $response = curl_exec($ch);
+
+        if (preg_match('/Unauthorised/i', $response)) {
+            throw new ApiException('Invalid API credentials');
+        }
+
+        return (string)$response;
     }
 
     /**
@@ -161,43 +177,32 @@ class API
 
         $response = $this->request('/apiv2/manifest_awb/', ['json_input' => json_encode($this->parcels)]);
 
-        $response = json_decode($response, true)['shipments'];
+        $response = json_decode($response, true);
 
         if ($response == null) {
-            throw new RequestException('Error in request');
-        } else {
-            $this->parcels = [];
-            return $response;
+            throw new RequestException('Request Exception: invalid parcel data');
         }
+
+        $this->parcels = [];
+
+        return $response['shipments'];
     }
 
     /**
-     * Wrapper to make request
-     *
-     * @param $method
-     * @param array $parameters GET or POST parameters
-     * @return string Document Body
-     * @throws RequestException
+     * Get AWB numbers
+     * @param int $count
+     * @return mixed
+     * @throws \Exception
      */
-    private function request($method, $parameters = [])
+    public function getAwbNumbers($count = 1)
     {
-        $parameters['username'] = $this->username;
-        $parameters['password'] = $this->password;
+        $codes = json_decode($this->request('/apiv2/fetch_awb/', ['count' => $count, 'type' => 'COD']), true);
 
-        $ch = curl_init();
+        if ($codes['success'] == 'no') {
+            throw new ApiException("AWB Get error: {$codes['error'][0]}");
+        }
 
-        $curlOptions = [
-            CURLOPT_RETURNTRANSFER => 1
-        ];
 
-        $curlOptions[CURLOPT_URL] = $this->API_URL . $method;
-        $curlOptions[CURLOPT_POST] = true;
-        $curlOptions[CURLOPT_POSTFIELDS] = http_build_query($parameters);
-
-        curl_setopt_array($ch, $curlOptions);
-
-        $response = curl_exec($ch);
-
-        return (string)$response;
+        return $codes['awb'];
     }
 }

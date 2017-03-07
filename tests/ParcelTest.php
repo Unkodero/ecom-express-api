@@ -25,29 +25,6 @@ class ParcelTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('awb', array_shift($sended));
     }
 
-    public function testMultiParcel()
-    {
-        $sended = $this->resource
-            ->addParcel($this->generateParcel())
-            ->addParcel($this->generateParcel())
-            ->addParcel($this->generateParcel())
-            ->send();
-
-        $this->assertTrue(count($sended) === 3);
-    }
-
-    public function testErrorParcel()
-    {
-        $parcel = $this->generateParcel();
-        unset($parcel['AWB_NUMBER']);
-
-        try {
-            $this->resource->addParcel($parcel)->send();
-        } catch (\EcomExpressAPI\Exception\RequestException $e) {
-            $this->assertType('\EcomExpressAPI\Exception\RequestException', $e);
-        }
-    }
-
     private function generateParcel()
     {
         return [
@@ -86,6 +63,40 @@ class ParcelTest extends \PHPUnit_Framework_TestCase
             "RETURN_MOBILE" => "59536",
             "DG_SHIPMENT" => "true"
         ];
+    }
+
+    public function testMultiParcel()
+    {
+        $sended = $this->resource
+            ->addParcel($this->generateParcel())
+            ->addParcel($this->generateParcel())
+            ->addParcel($this->generateParcel())
+            ->send();
+
+        $this->assertTrue(count($sended) === 3);
+    }
+
+    public function testErrorParcel()
+    {
+        $parcel = $this->generateParcel();
+        unset($parcel['ORDER_NUMBER']);
+
+        try {
+            $this->resource->addParcel($parcel)->send();
+        } catch (\EcomExpressAPI\Exception\RequestException $e) {
+            $this->assertInstanceOf(EcomExpressAPI\Exception\RequestException::class, $e);
+        }
+    }
+
+    public function testInvalidCredentials()
+    {
+        $this->resource = new API('foo', 'bar');
+
+        try {
+            $this->resource->addParcel($this->generateParcel())->send();
+        } catch (\EcomExpressAPI\Exception\ApiException $e) {
+            $this->assertInstanceOf(\EcomExpressAPI\Exception\ApiException::class, $e);
+        }
     }
 
 }
