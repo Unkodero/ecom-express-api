@@ -3,12 +3,12 @@
 
 https://ecomexpress.in/ Wrapper
 
-##Install
+## Install
 ```
 composer require unkodero/ecom-express-api
 ```
 
-##Usage
+## Usage
 ```php
 <?php
 
@@ -17,13 +17,13 @@ use EcomExpressAPI\API as Post;
 $api = new Post('username', 'password');
 ```
 
-###Development Mode
+### Development Mode
 ```php
 //You may insert any credetinals to API constructor
 $api->developmentMode();
 ```
 
-###Tracking
+### Tracking
 ```php
 <?php
 
@@ -35,7 +35,7 @@ $tracking = $api->track([123, 456, 789]); //multiply
 //See below answers examples
 ```
 
-###Getting Pincodes
+### Getting Pincodes
 ```php
 $pin = $api->getPinList();
 ```
