@@ -11,7 +11,7 @@ use EcomExpressAPI\Exception\RequestException;
  */
 class API
 {
-    const PRODUCTION_API_URL = 'http://api.ecomexpress.in';
+    const PRODUCTION_API_URL = 'http://plapi.ecomexpress.in';
 
     const DEVELOPMENT_API_URL = 'http://ecomm.prtouch.com';
     const DEVELOPMENT_API_USERNAME = 'ecomexpress';
